@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BuildProjectIdRouteImport } from './routes/build.$projectId'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,36 +37,47 @@ const ApiChatRoute = ApiChatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/api/chat': typeof ApiChatRoute
   '/build/$projectId': typeof BuildProjectIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/api/chat': typeof ApiChatRoute
   '/build/$projectId': typeof BuildProjectIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/api/chat': typeof ApiChatRoute
   '/build/$projectId': typeof BuildProjectIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/chat' | '/build/$projectId'
+  fullPaths: '/' | '/settings' | '/api/chat' | '/build/$projectId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/chat' | '/build/$projectId'
-  id: '__root__' | '/' | '/api/chat' | '/build/$projectId'
+  to: '/' | '/settings' | '/api/chat' | '/build/$projectId'
+  id: '__root__' | '/' | '/settings' | '/api/chat' | '/build/$projectId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SettingsRoute: typeof SettingsRoute
   ApiChatRoute: typeof ApiChatRoute
   BuildProjectIdRoute: typeof BuildProjectIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SettingsRoute: SettingsRoute,
   ApiChatRoute: ApiChatRoute,
   BuildProjectIdRoute: BuildProjectIdRoute,
 }
