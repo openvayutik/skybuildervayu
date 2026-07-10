@@ -1,3 +1,10 @@
+export type Checkpoint = {
+  id: string;
+  createdAt: number;
+  label: string;
+  code: string;
+};
+
 export type Project = {
   id: string;
   name: string;
@@ -5,6 +12,8 @@ export type Project = {
   updatedAt: number;
   messages: unknown[]; // UIMessage[]
   code: string; // latest generated HTML
+  modelKey?: string; // "provider:model"
+  checkpoints?: Checkpoint[];
 };
 
 const KEY = "skybuilder.projects.v1";
@@ -23,7 +32,20 @@ export function loadProjects(): Project[] {
 
 export function saveProjects(projects: Project[]) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, JSON.stringify(projects));
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(projects));
+  } catch {
+    // localStorage quota — trim old projects
+    const trimmed = projects.slice(0, 20).map((p) => ({
+      ...p,
+      checkpoints: (p.checkpoints ?? []).slice(-10),
+    }));
+    try {
+      window.localStorage.setItem(KEY, JSON.stringify(trimmed));
+    } catch {
+      /* ignore */
+    }
+  }
 }
 
 export function getProject(id: string): Project | undefined {
@@ -50,16 +72,15 @@ export function createProject(name = "Untitled Project"): Project {
     updatedAt: Date.now(),
     messages: [],
     code: "",
+    checkpoints: [],
   };
 }
 
 export function extractHtml(text: string): string | null {
-  // Prefer ```html blocks; also accept generic ``` with <!doctype
   const htmlBlock = text.match(/```html\s*([\s\S]*?)```/i);
   if (htmlBlock) return htmlBlock[1].trim();
   const anyBlock = text.match(/```(?:\w+)?\s*(<!doctype[\s\S]*?)```/i);
   if (anyBlock) return anyBlock[1].trim();
-  // If plain full HTML no fences
   const idx = text.toLowerCase().indexOf("<!doctype");
   if (idx >= 0) return text.slice(idx).trim();
   return null;
