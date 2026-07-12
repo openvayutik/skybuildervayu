@@ -437,8 +437,24 @@ function Builder() {
                 </button>
               ))}
             </div>
+            <div className="flex items-center gap-1 bg-neutral-800 rounded-lg p-0.5">
+              {(["single", "react"] as Framework[]).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFramework(f)}
+                  className={
+                    "px-2 py-1 rounded-md text-[11px] font-medium transition flex items-center gap-1 " +
+                    (framework === f ? "bg-violet-500 text-white" : "text-neutral-400 hover:text-white")
+                  }
+                  title={f === "single" ? "Vanilla single-file HTML" : "React CDN app"}
+                >
+                  <Boxes className="w-3 h-3" />
+                  {f === "single" ? "HTML" : "React"}
+                </button>
+              ))}
+            </div>
             <div className="text-[10px] text-neutral-500 ml-auto">
-              {mode === "plan" ? "AI drafts a plan first" : "AI writes the app"}
+              {mode === "plan" ? "AI drafts a plan first" : framework === "react" ? "React + Tailwind CDN" : "Vanilla HTML app"}
             </div>
           </div>
 
