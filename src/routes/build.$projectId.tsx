@@ -41,6 +41,7 @@ function Builder() {
   const [tab, setTab] = useState<Tab>("preview");
   const [device, setDevice] = useState<Device>("desktop");
   const [mode, setMode] = useState<Mode>("build");
+  const [framework, setFramework] = useState<Framework>("single");
   const [model, setModel] = useState<ModelInfo>(() => getDefaultModel());
   const [input, setInput] = useState("");
   const [previewKey, setPreviewKey] = useState(0);
