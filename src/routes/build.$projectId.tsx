@@ -511,6 +511,20 @@ function Builder() {
             >
               {enhancing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
             </button>
+            {voice.supported && (
+              <button
+                type="button"
+                onClick={voice.toggle}
+                className={
+                  "absolute bottom-2 left-9 w-6 h-6 rounded flex items-center justify-center " +
+                  (voice.listening ? "text-red-500 animate-pulse" : "text-neutral-500 hover:text-neutral-800")
+                }
+                aria-label="Voice input"
+                title={voice.listening ? "Stop listening" : "Voice input"}
+              >
+                {voice.listening ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+              </button>
+            )}
             <button
               type="submit"
               disabled={isBusy || !input.trim()}
