@@ -260,6 +260,51 @@ function Builder() {
     setTimeout(() => setCopied(false), 1500);
   }
 
+  const voice = useVoiceInput((t) => setInput((v) => (v ? v + " " : "") + t));
+
+  function forkProject() {
+    const src = getProject(projectId);
+    if (!src) return;
+    const copy = createProject(`${src.name} (fork)`);
+    copy.messages = src.messages;
+    copy.code = src.code;
+    copy.modelKey = src.modelKey;
+    copy.checkpoints = src.checkpoints ?? [];
+    upsertProject(copy);
+    navigate({ to: "/build/$projectId", params: { projectId: copy.id }, search: {} });
+  }
+
+  function shareLink() {
+    if (!savedCode) return alert("Nothing to share yet.");
+    // Create a shareable data URL (works offline, no server needed)
+    const b64 = btoa(unescape(encodeURIComponent(savedCode)));
+    const url = `data:text/html;base64,${b64}`;
+    navigator.clipboard.writeText(url).then(
+      () => alert("Share link copied! Paste into any browser to open your app."),
+      () => window.prompt("Copy this share link:", url),
+    );
+  }
+
+  function autoFix() {
+    const errors = consoleLogs.filter((l) => l.level === "error").map((l) => l.text).join("\n");
+    if (!errors) return alert("No errors detected in the preview console.");
+    sendMessage({ text: `The preview is throwing these errors — please fix them and return the full corrected app:\n\n${errors}` });
+    setTab("preview");
+  }
+
+  // Keyboard shortcuts: Cmd/Ctrl+S = deploy, Cmd/Ctrl+K = focus prompt
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+      if (e.key === "s") { e.preventDefault(); downloadHtml(); }
+      if (e.key === "k") { e.preventDefault(); (document.querySelector("textarea") as HTMLTextAreaElement | null)?.focus(); }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedCode, name]);
+
   // Inject console proxy into iframe HTML
   const previewSrc = useMemo(() => {
     if (!savedCode) return "";
