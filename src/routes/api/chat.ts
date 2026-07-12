@@ -62,6 +62,7 @@ export const Route = createFileRoute("/api/chat")({
           model?: string;
           apiKey?: string;
           mode?: "plan" | "build";
+          framework?: "single" | "react";
         };
         try {
           body = await request.json();
@@ -69,7 +70,7 @@ export const Route = createFileRoute("/api/chat")({
           return new Response("invalid json", { status: 400 });
         }
 
-        const { messages, provider = "lovable", model, apiKey, mode = "build" } = body;
+        const { messages, provider = "lovable", model, apiKey, mode = "build", framework = "single" } = body;
         if (!Array.isArray(messages)) return new Response("messages required", { status: 400 });
         if (!model) return new Response("model required", { status: 400 });
 
