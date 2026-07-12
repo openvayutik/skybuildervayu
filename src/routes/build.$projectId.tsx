@@ -26,6 +26,7 @@ export const Route = createFileRoute("/build/$projectId")({
 type Tab = "preview" | "code" | "history" | "console";
 type Device = "mobile" | "tablet" | "desktop";
 type Mode = "plan" | "build";
+type Framework = "single" | "react";
 
 function Builder() {
   const { projectId } = Route.useParams();
