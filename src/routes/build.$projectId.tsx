@@ -94,11 +94,12 @@ function Builder() {
               model: model.id,
               apiKey,
               mode,
+              framework,
             },
           };
         },
       }),
-    [model, mode],
+    [model, mode, framework],
   );
 
   const { messages, sendMessage, status, setMessages, stop, error } = useChat({
