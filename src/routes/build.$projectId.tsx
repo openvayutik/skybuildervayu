@@ -381,10 +381,28 @@ function Builder() {
         <div className="ml-auto flex items-center gap-2 bg-neutral-900 rounded-2xl p-2 border border-neutral-800">
           <ModelPicker value={model} onChange={pickModel} variant="dark" />
           <button
+            onClick={forkProject}
+            className="p-2 rounded-lg text-neutral-300 hover:bg-neutral-800 transition"
+            aria-label="Fork project"
+            title="Fork project"
+          >
+            <GitFork className="w-4 h-4" />
+          </button>
+          <button
+            onClick={shareLink}
+            disabled={!savedCode}
+            className="p-2 rounded-lg text-neutral-300 hover:bg-neutral-800 disabled:opacity-40 transition"
+            aria-label="Share link"
+            title="Copy share link"
+          >
+            <Share2 className="w-4 h-4" />
+          </button>
+          <button
             onClick={downloadHtml}
             disabled={!savedCode}
             className="p-2 rounded-lg text-neutral-300 hover:bg-neutral-800 disabled:opacity-40 transition"
             aria-label="Download HTML"
+            title="Download (⌘S)"
           >
             <Download className="w-4 h-4" />
           </button>
