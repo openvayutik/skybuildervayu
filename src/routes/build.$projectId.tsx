@@ -635,7 +635,15 @@ function Builder() {
                 <div className="flex items-center gap-2 mb-3 text-neutral-400">
                   <Terminal className="w-4 h-4" />
                   <span>Preview console</span>
-                  <button onClick={() => setConsoleLogs([])} className="ml-auto text-neutral-500 hover:text-white text-xs">Clear</button>
+                  <button
+                    onClick={autoFix}
+                    disabled={!consoleLogs.some((l) => l.level === "error") || isBusy}
+                    className="ml-auto flex items-center gap-1 px-2 py-1 rounded text-[11px] bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 disabled:opacity-30"
+                    title="Send errors to AI and auto-fix"
+                  >
+                    <Wrench className="w-3 h-3" /> Auto-fix
+                  </button>
+                  <button onClick={() => setConsoleLogs([])} className="text-neutral-500 hover:text-white text-xs">Clear</button>
                 </div>
                 {consoleLogs.length === 0 ? (
                   <div className="text-neutral-500">No output. Interact with the preview to see logs.</div>
