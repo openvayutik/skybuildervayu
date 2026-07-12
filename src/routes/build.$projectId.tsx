@@ -6,12 +6,14 @@ import Editor from "@monaco-editor/react";
 import {
   Grid3x3, Pencil, Rocket, Code2, Send, Plus, Loader2, Sparkles,
   History, Download, Smartphone, Tablet, Monitor, RefreshCw, Wand2,
-  Play, FileCode, ExternalLink, Terminal, Copy, Check,
+  Play, FileCode, ExternalLink, Terminal, Copy, Check, Mic, MicOff,
+  GitFork, Share2, Wrench, Boxes,
 } from "lucide-react";
 import { getProject, upsertProject, createProject, extractHtml, type Checkpoint } from "@/lib/projects";
 import { ModelPicker } from "@/components/ModelPicker";
 import { getDefaultModel, findModel, modelKey, type ModelInfo, PROVIDERS } from "@/lib/models";
 import { getApiKey } from "@/lib/settings";
+import { useVoiceInput } from "@/lib/voice";
 import { z } from "zod";
 
 const searchSchema = z.object({ prompt: z.string().optional() });
