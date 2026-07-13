@@ -1,90 +1,82 @@
-# Skybuilder — Full Upgrade Plan
+# Skybuilder v2 — Multi-file AI app builder
 
-This is a large scope. To ship with a **100% working** result and no half-broken features, I'll split it into 3 phases. Each phase is independently shippable. Please confirm and I'll start with Phase 1 (or say "do all" and I'll execute all three back-to-back).
+Fix the two real complaints: (1) the AI only outputs one HTML blob, so generations feel weak; (2) the "code panel" is read-only Monaco with no file tree, so you can't edit or navigate. Rebuild both.
 
----
+## 1. Multi-file generation (like Lovable / v0 / arena)
 
-## Phase 1 — Providers, Models, Settings, Chat Upgrade (core)
+New AI contract: the model returns a **project manifest as JSON** inside a single ```json fenced block, not a single HTML file.
 
-**Settings page** (`/settings`)
-- Configure API keys for: **OpenRouter, Google Gemini, Groq, NVIDIA NIM**, plus keep **Lovable AI** as the free default.
-- Keys stored **encrypted in localStorage** (client-only, never sent to our server; requests go browser → provider directly when a user key exists, else through Lovable AI Gateway).
-- Test-connection button per provider.
+```json
+{
+  "summary": "One-line what changed",
+  "framework": "static" | "react-vite",
+  "entry": "index.html",
+  "files": [
+    { "path": "index.html", "content": "..." },
+    { "path": "src/App.tsx", "content": "..." },
+    { "path": "src/styles.css", "content": "..." }
+  ],
+  "deleted": ["old/path.js"]
+}
+```
 
-**Model picker**
-- Dropdown on **home page** and **builder header**.
-- Curated model list per provider (e.g. Gemini 2.5 Pro/Flash, GPT-5.5, Claude via OpenRouter, Llama 3.3 70B via Groq, Nemotron via NIM).
-- Selected model persisted per project.
+Rewrite `src/routes/api/chat.ts` system prompts:
+- **static** framework — multi-file vanilla project (index.html + css/ + js/ modules + assets).
+- **react-vite** framework — React + Tailwind + shadcn-style components as multiple `.tsx`/`.css` files, bundled in-browser (see §3).
+- Both prompts require: strong design system (semantic color tokens, typography scale, spacing, motion), real content, Unsplash images by keyword, accessibility, responsive.
+- Refinements: emit only changed/new files in `files[]`, list removed paths in `deleted[]` — server merges into project state. Full-file replacement per changed file (no diffs).
 
-**Chat panel — Lovable-style**
-- Streaming with **plan / build mode** toggle (plan = markdown reasoning first, build = code).
-- **Checkpoints**: every assistant turn snapshots the generated code; user can click to restore.
-- Inline **code block previews** with copy button and file badge.
-- Status pills: "Thinking…", "Writing HTML…", "Done".
-- Retry / edit-last-message.
+Parser lives in `src/lib/manifest.ts`: extracts the JSON block, validates with Zod, merges into project file map.
 
-**Wire the AI route** to route per-provider (Lovable Gateway, OpenRouter, direct Gemini, Groq, NIM) using the AI SDK's OpenAI-compatible adapter.
+## 2. Real IDE panel
 
----
+Rewrite the Code tab in `src/routes/build.$projectId.tsx` into a proper IDE layout:
 
-## Phase 2 — IDE Code Panel + History + Image Scraper
+```text
+┌─ Files ──────┬─ Tabs: App.tsx × index.html × ─────────┐
+│ ▸ src/       │                                         │
+│   App.tsx    │        Monaco editor (editable)         │
+│   styles.css │        - syntax per extension           │
+│ index.html   │        - save on blur / Ctrl+S          │
+│ package.json │        - dirty indicator on tab         │
+└──────────────┴─────────────────────────────────────────┘
+```
 
-**Monaco-based IDE code panel** (replaces the current `<pre>`):
-- Syntax highlight, minimap, line numbers, find/replace, format-on-save.
-- **Multi-file support** — parse AI output into a virtual file tree (index.html, styles.css, app.js, etc.).
-- File tabs + tree sidebar.
-- Live edit → preview refresh.
-- Download as ZIP.
+- File tree: collapsible folders, new file / new folder / rename / delete, right-click menu.
+- Editor: Monaco with `onChange` writing back into project files, multi-tab open files, unsaved dot, Ctrl+S saves + rebuilds preview, Ctrl+P quick-open.
+- Search: Ctrl+Shift+F across all files (simple substring, results list).
+- Every edit creates a lightweight checkpoint (already have the system).
 
-**History panel** in builder:
-- Full timeline of checkpoints with diff preview.
-- Restore / branch from any point.
+## 3. Preview that runs real projects
 
-**Image scraper** (background enrichment):
-- After generation, scan HTML for `<img>` placeholders / `data-needs-image="..."` attributes.
-- Server route calls **Unsplash / Pexels API** (free, no key needed for demo tier) or Lovable AI image gen for missing images.
-- Replaces `src` in the final HTML before saving.
+Two preview engines:
 
----
+- **static**: assemble files into a Blob URL bundle — inline `<link>`/`<script src>` are rewritten to `blob:` URLs before injecting the HTML into the iframe. Handles CSS, JS modules, images (base64 or Unsplash).
+- **react-vite**: in-browser bundler using **esbuild-wasm** (`esbuild.build` with a virtual FS resolver pointing at the project files, JSX loader, Tailwind via CDN). Output JS is injected into a minimal `index.html` template. No server build step.
 
-## Phase 3 — Framework Modes + 10 Bonus Features
+Both engines re-run on Ctrl+S or the existing "Run" button; hot rebuild is debounced.
 
-**Framework modes** — the AI can now output:
-1. Single-file HTML app (current)
-2. Multi-file **vanilla web app** (HTML/CSS/JS separated)
-3. **React app** (Vite + Tailwind + shadcn, downloadable as ZIP)
+## 4. Design capability upgrades
 
-System prompts + output parsers per mode; strict validation so previews never break.
+- Ship a default design-system starter (tokens.css with HSL semantic colors, typography scale, motion, shadows) that every new React project inherits.
+- Prompt teaches the model to use those tokens, not hardcoded Tailwind colors — matches how Lovable prompts work.
+- Add a "Design style" chip on the home page (Minimal, Bold, Playful, Glass, Brutalist) that gets appended to the system prompt.
 
-**10+ extra features:**
-1. **Share link** — publish generated app to a public URL (upload HTML to Lovable storage).
-2. **Fork project** button.
-3. **Templates gallery** on home (Landing page, SaaS, Dashboard, Portfolio, Game, etc.).
-4. **Prompt enhancer** — one-click "Improve prompt" via AI.
-5. **Voice input** on composer (Web Speech API).
-6. **Screenshot-to-app** — upload a UI screenshot, AI rebuilds it.
-7. **Mobile / tablet / desktop** preview toggles.
-8. **Dark/light preview** switch.
-9. **Console panel** — captures iframe `console.log` for debugging.
-10. **Auto-fix** button — if iframe throws, AI reads the error and patches.
-11. **Keyboard shortcuts** (⌘K command palette, ⌘S save, ⌘⏎ send).
-12. **Export**: ZIP, single HTML, or direct-to-GitHub gist.
+## 5. Extra IDE conveniences
 
----
+- Download project as `.zip` (JSZip).
+- Copy file / duplicate.
+- Console tab already exists — keep, wire "Auto-fix" to send file map + errors back to model.
+- Keyboard: Ctrl+S save+run, Ctrl+P quick-open, Ctrl+Enter send, Ctrl+B toggle sidebar.
 
-## Technical Notes
+## Technical notes (dev-facing)
 
-- **Provider routing:** one server function per provider (`/api/chat`) accepting `{ provider, model, apiKey? }`. If `apiKey` from user settings is present, we pass it to the gateway; otherwise use `LOVABLE_API_KEY`.
-- **Security:** never log user API keys; keys stay in `localStorage` and are attached only to the outbound request.
-- **Storage:** everything stays in `localStorage` (no DB) unless you want cloud sync — say the word and I'll add Lovable Cloud with auth + Postgres for projects/history/shared apps.
-- **Model list** kept in `src/lib/models.ts` and rendered by the picker, so adding models later is a one-line change.
+- New deps: `esbuild-wasm`, `jszip`.
+- Project storage extends: `Project.files: Record<string, string>`, `Project.entry: string`, `Project.framework: "static"|"react-vite"`. Migration: if old `code` string exists and no `files`, seed `{ "index.html": code }`.
+- Manifest parser is tolerant: if model returns a raw HTML block (legacy), wrap it as `{ files: [{ path: "index.html", content }] }`.
+- Preview iframe uses `srcdoc` for static, and a Blob URL for react-vite so relative imports resolve.
+- Keep current providers/model picker/checkpoints/plan-mode intact.
 
----
+## Out of scope this pass
 
-## What I need from you
-
-1. **Approve phases** (all three, or one at a time?).
-2. **Cloud sync?** yes/no — recommend yes so history & share links survive across devices.
-3. **Templates** — want me to pre-seed 6 starter templates?
-
-Reply "go" and I'll start Phase 1 immediately.
+- Server-side bundling, real npm install, backend/DB scaffolding, auth in generated apps, deployment beyond "download zip / open HTML".

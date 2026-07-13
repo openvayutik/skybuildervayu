@@ -2,7 +2,11 @@ export type Checkpoint = {
   id: string;
   createdAt: number;
   label: string;
-  code: string;
+  // Legacy: single-file HTML string. New: full multi-file snapshot.
+  code?: string;
+  files?: Record<string, string>;
+  entry?: string;
+  framework?: "static" | "react";
 };
 
 export type Project = {
@@ -10,9 +14,14 @@ export type Project = {
   name: string;
   createdAt: number;
   updatedAt: number;
-  messages: unknown[]; // UIMessage[]
-  code: string; // latest generated HTML
-  modelKey?: string; // "provider:model"
+  messages: unknown[];
+  // Legacy
+  code?: string;
+  // New multi-file
+  files?: Record<string, string>;
+  entry?: string;
+  framework?: "static" | "react";
+  modelKey?: string;
   checkpoints?: Checkpoint[];
 };
 
@@ -35,7 +44,6 @@ export function saveProjects(projects: Project[]) {
   try {
     window.localStorage.setItem(KEY, JSON.stringify(projects));
   } catch {
-    // localStorage quota — trim old projects
     const trimmed = projects.slice(0, 20).map((p) => ({
       ...p,
       checkpoints: (p.checkpoints ?? []).slice(-10),
@@ -49,7 +57,15 @@ export function saveProjects(projects: Project[]) {
 }
 
 export function getProject(id: string): Project | undefined {
-  return loadProjects().find((p) => p.id === id);
+  const p = loadProjects().find((p) => p.id === id);
+  if (!p) return p;
+  // Migrate legacy `code` into files map
+  if ((!p.files || Object.keys(p.files).length === 0) && p.code) {
+    p.files = { "index.html": p.code };
+    p.entry = "index.html";
+    p.framework = "static";
+  }
+  return p;
 }
 
 export function upsertProject(project: Project) {
@@ -71,16 +87,17 @@ export function createProject(name = "Untitled Project"): Project {
     createdAt: Date.now(),
     updatedAt: Date.now(),
     messages: [],
-    code: "",
+    files: {},
+    entry: "index.html",
+    framework: "static",
     checkpoints: [],
   };
 }
 
+// Legacy helper kept for compatibility with any old code paths.
 export function extractHtml(text: string): string | null {
   const htmlBlock = text.match(/```html\s*([\s\S]*?)```/i);
   if (htmlBlock) return htmlBlock[1].trim();
-  const anyBlock = text.match(/```(?:\w+)?\s*(<!doctype[\s\S]*?)```/i);
-  if (anyBlock) return anyBlock[1].trim();
   const idx = text.toLowerCase().indexOf("<!doctype");
   if (idx >= 0) return text.slice(idx).trim();
   return null;
