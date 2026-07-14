@@ -148,7 +148,21 @@ export const Route = createFileRoute("/api/chat")({
             system,
             messages: await convertToModelMessages(messages),
           });
-          return result.toUIMessageStreamResponse({ originalMessages: messages });
+          return result.toUIMessageStreamResponse({
+            originalMessages: messages,
+            onError: (error) => {
+              const msg = error instanceof Error ? error.message : String(error);
+              if (msg.includes("402") || /credit/i.test(msg)) {
+                return provider === "lovable"
+                  ? "Lovable AI credits exhausted (HTTP 402). Add credits in your workspace billing, or switch to a provider you configured in Settings (OpenRouter / Gemini / Groq / NIM)."
+                  : `Provider ${provider} returned 402 (out of credits / quota).`;
+              }
+              if (msg.includes("429")) return `Rate limited by ${provider}. Wait a moment and retry.`;
+              if (msg.includes("401") || msg.includes("403"))
+                return `Auth failed for ${provider}. Check your API key in Settings.`;
+              return `AI error (${provider} · ${model}): ${msg}`;
+            },
+          });
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
           return new Response(`AI error: ${msg}`, { status: 500 });
