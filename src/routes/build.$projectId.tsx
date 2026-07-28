@@ -214,9 +214,13 @@ function Builder() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          provider: "lovable", model: "google/gemini-2.5-flash", mode: "plan",
+          provider: model.provider,
+          model: model.id,
+          apiKey: model.provider === "lovable" ? undefined : getApiKey(model.provider),
+          mode: "plan",
           messages: [{ id: "e", role: "user", parts: [{ type: "text", text: `Rewrite this app idea as a clearer, more detailed one-paragraph prompt. Only reply with the improved prompt, no preamble.\n\nIdea: ${input}` }] }],
         }),
+
       });
       const text = await res.text();
       const cleaned = text.replace(/^data: /gm, "").replace(/^\d+:"/gm, "").replace(/"$/gm, "");
