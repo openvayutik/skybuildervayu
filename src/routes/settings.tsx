@@ -86,14 +86,23 @@ function ProviderKeyRow({ providerId }: { providerId: ProviderId }) {
       });
       if (res.ok) {
         setTesting("ok");
-        setTestMsg("Key works ✓");
+        setTestMsg("Key works ✓ — saved and ready to use");
+        setApiKey(providerId, value.trim());
       } else {
+        const body = await res.text().catch(() => "");
         setTesting("fail");
-        setTestMsg(`HTTP ${res.status}`);
+        setTestMsg(
+          res.status === 401 || res.status === 403
+            ? "Invalid or unauthorized key (HTTP " + res.status + ")"
+            : `HTTP ${res.status} ${body.slice(0, 140)}`,
+        );
       }
     } catch (e) {
       setTesting("fail");
-      setTestMsg(e instanceof Error ? e.message : "Network error");
+      setTestMsg(
+        (e instanceof Error ? e.message : "Network error") +
+          " — the provider may block browser requests; the key can still work at build time.",
+      );
     }
   }
 
@@ -114,12 +123,13 @@ function ProviderKeyRow({ providerId }: { providerId: ProviderId }) {
             Get an API key <ExternalLink className="w-3 h-3" />
           </a>
         </div>
-        {getApiKey(providerId) && (
+        {connected && (
           <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded bg-emerald-500/15 text-emerald-400">
             Connected
           </span>
         )}
       </div>
+
 
       <div className="mt-4 flex gap-2">
         <div className="flex-1 flex items-center rounded-lg bg-neutral-950 border border-neutral-800 focus-within:border-neutral-600">
