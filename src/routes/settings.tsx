@@ -61,12 +61,18 @@ function ProviderKeyRow({ providerId }: { providerId: ProviderId }) {
   const [testing, setTesting] = useState<"idle" | "ok" | "fail" | "loading">("idle");
   const [testMsg, setTestMsg] = useState("");
 
+  const [connected, setConnected] = useState(false);
+
   useEffect(() => {
-    setValue(getApiKey(providerId));
+    const k = getApiKey(providerId);
+    setValue(k);
+    setConnected(!!k);
   }, [providerId]);
 
   function save() {
-    setApiKey(providerId, value.trim());
+    const v = value.trim();
+    setApiKey(providerId, v);
+    setConnected(!!v);
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
   }
@@ -74,7 +80,11 @@ function ProviderKeyRow({ providerId }: { providerId: ProviderId }) {
   function clear() {
     setValue("");
     setApiKey(providerId, "");
+    setConnected(false);
+    setTesting("idle");
+    setTestMsg("");
   }
+
 
   async function test() {
     if (!value.trim()) return;
