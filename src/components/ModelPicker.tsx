@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Check, KeyRound, Cpu } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { MODELS, PROVIDERS, modelKey, type ModelInfo } from "@/lib/models";
-import { hasProviderReady } from "@/lib/settings";
+import { useProviderReadiness } from "@/lib/settings";
 
 export function ModelPicker({
   value,
