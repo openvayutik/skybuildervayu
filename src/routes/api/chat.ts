@@ -12,14 +12,52 @@ const PROVIDER_BASE: Record<ProviderId, string> = {
   nim: "https://integrate.api.nvidia.com/v1",
 };
 
-const DESIGN_RULES = `DESIGN QUALITY (non-negotiable):
-- Modern, distinctive visual direction. NEVER default generic (no white bg + purple/indigo gradients + Inter).
-- Cohesive palette (define 4-6 semantic colors and reuse them). Strong typography scale, generous whitespace, real hierarchy.
-- Interactive polish: hover/focus states, smooth transitions, thoughtful empty/loading states.
-- Fully responsive (mobile-first). Accessible: semantic HTML, alt text, ARIA where needed.
-- Rich, believable content — real names, real numbers, real copy. NO "lorem ipsum", NO "Card 1 / Card 2".
-- Images: use https://images.unsplash.com/photo-... (real URLs) or https://source.unsplash.com/1200x800/?<keyword> for topical images.
-- Icons: use inline SVG or lucide via CDN. Fonts: Google Fonts <link> in head.`;
+const IMAGE_RULES = `IMAGES — MUST NEVER BE BROKEN:
+- ONLY use these image sources (all are guaranteed to load, no API key, no redirects):
+  1. https://picsum.photos/seed/<unique-slug>/1200/800  (photos — vary the seed per image)
+  2. https://images.unsplash.com/photo-<id>?auto=format&fit=crop&w=1600&q=80  (ONLY with a photo id you are certain exists)
+  3. Inline SVG (data URI or literal <svg>) for logos, patterns, icons, avatars, illustrations
+  4. https://api.dicebear.com/9.x/avataaars/svg?seed=<name>  for people avatars
+- NEVER use source.unsplash.com, loremflickr, placeholder.com, placeimg, via.placeholder, example.com, or any local file path like "images/hero.jpg" that you did not create.
+- Every <img> MUST have: alt text, width/height or aspect-ratio CSS, object-fit: cover, loading="lazy" (except the hero), and a background color so it never flashes empty.
+- Add onerror fallback on decorative images: onerror="this.style.display='none'".
+- Logos/brand marks are inline SVG, never an <img>.`;
+
+const DESIGN_RULES = `DESIGN QUALITY — Lovable / v0 / Linear tier. This is the bar. Do NOT ship a plain document.
+
+VISUAL DIRECTION
+- Pick ONE opinionated art direction and commit (e.g. warm editorial, brutalist mono, glassy neon, soft organic, luxury dark). Never generic white page + blue button + Inter.
+- Define design tokens in CSS custom properties FIRST (:root): background, foreground, primary, primary-foreground, muted, accent, border, plus radius, shadows, and 1-2 gradients. Every color used later references a token.
+- Dark or richly tinted surfaces are preferred over pure #fff unless the brief says otherwise.
+
+TYPOGRAPHY
+- Two Google Fonts max, loaded via <link> in <head> (one display/serif or geometric for headings, one clean sans for body). Never leave the browser default.
+- Real type scale: hero clamp(2.5rem, 6vw, 5rem), tight letter-spacing on display, line-height 1.1 headings / 1.6 body, max-width ~65ch on paragraphs.
+
+LAYOUT & DEPTH
+- Sections: full-bleed with a max-w container (1200px) and generous vertical rhythm (py 96-140px desktop, 64px mobile).
+- Use asymmetry, overlap, layered cards, bento grids, sticky elements — not an endless stack of centered boxes.
+- Depth via soft layered shadows, subtle borders (1px rgba), gradient meshes/radial glows, noise or grid overlays.
+- Never leave a form/section as raw unstyled inputs: style inputs, focus rings, and a real filled primary button (the screenshot bug: a bare "Send" text button is unacceptable — it must be a styled button with background, padding, radius, hover).
+
+MOTION & INTERACTION
+- Hover/active/focus-visible states on EVERY interactive element. transition 150-250ms cubic-bezier(.4,0,.2,1).
+- Scroll reveal with IntersectionObserver, sticky header that changes on scroll, mobile hamburger that actually opens.
+- Respect prefers-reduced-motion.
+
+CONTENT
+- Real, specific, believable copy — named products, prices, testimonials with names/roles, real-sounding stats. NEVER lorem ipsum, "Card 1", or "Your text here".
+- 6+ substantial sections for a landing page (nav, hero, social proof, features, showcase, testimonials, pricing/CTA, footer).
+
+QUALITY BAR
+- Fully responsive mobile-first; test mentally at 375px, 768px, 1440px.
+- Semantic HTML, alt text, ARIA labels on icon buttons, keyboard accessible, WCAG AA contrast.
+- Zero console errors. All JS wired and functional — no dead buttons, no href="#" that does nothing.
+
+${IMAGE_RULES}
+
+ICONS: inline SVG (24x24, stroke currentColor, stroke-width 1.5) or lucide via CDN. Never emoji as UI icons unless the direction calls for it.`;
+
 
 const MANIFEST_RULES = `OUTPUT FORMAT — STRICT:
 Reply with ONE fenced JSON block, nothing else. No prose before or after.
