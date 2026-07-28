@@ -14,6 +14,7 @@ export function ModelPicker({
   variant?: "light" | "dark";
 }) {
   const [open, setOpen] = useState(false);
+  const readiness = useProviderReadiness();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
