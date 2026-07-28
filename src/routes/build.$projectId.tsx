@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { getProject, upsertProject, createProject, type Checkpoint, type Project } from "@/lib/projects";
 import { ModelPicker } from "@/components/ModelPicker";
-import { getDefaultModel, findModel, modelKey, type ModelInfo, PROVIDERS } from "@/lib/models";
+import { MODELS, getDefaultModel, findModel, modelKey, type ModelInfo, PROVIDERS } from "@/lib/models";
 import { getApiKey } from "@/lib/settings";
 import { useVoiceInput } from "@/lib/voice";
 import { extractManifest, mergeManifest, buildPreviewHtml, languageFor, type FrameworkId } from "@/lib/manifest";
@@ -46,7 +46,8 @@ function Builder() {
   const [tab, setTab] = useState<Tab>("preview");
   const [device, setDevice] = useState<Device>("desktop");
   const [mode, setMode] = useState<Mode>("build");
-  const [model, setModel] = useState<ModelInfo>(() => getDefaultModel());
+  const [model, setModel] = useState<ModelInfo>(MODELS[0]);
+  useEffect(() => setModel(getDefaultModel()), []);
   const [input, setInput] = useState("");
   const [previewKey, setPreviewKey] = useState(0);
   const [consoleLogs, setConsoleLogs] = useState<{ level: string; text: string; ts: number }[]>([]);
