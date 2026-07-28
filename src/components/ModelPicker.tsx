@@ -56,7 +56,7 @@ export function ModelPicker({
           }
         >
           {grouped.map(({ provider, models }) => {
-            const ready = hasProviderReady(provider.id);
+            const ready = readiness[provider.id];
             return (
               <div key={provider.id} className="py-1">
                 <div
