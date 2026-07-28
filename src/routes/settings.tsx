@@ -98,6 +98,7 @@ function ProviderKeyRow({ providerId }: { providerId: ProviderId }) {
         setTesting("ok");
         setTestMsg("Key works ✓ — saved and ready to use");
         setApiKey(providerId, value.trim());
+        setConnected(true);
       } else {
         const body = await res.text().catch(() => "");
         setTesting("fail");
