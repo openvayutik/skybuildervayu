@@ -61,12 +61,18 @@ function ProviderKeyRow({ providerId }: { providerId: ProviderId }) {
   const [testing, setTesting] = useState<"idle" | "ok" | "fail" | "loading">("idle");
   const [testMsg, setTestMsg] = useState("");
 
+  const [connected, setConnected] = useState(false);
+
   useEffect(() => {
-    setValue(getApiKey(providerId));
+    const k = getApiKey(providerId);
+    setValue(k);
+    setConnected(!!k);
   }, [providerId]);
 
   function save() {
-    setApiKey(providerId, value.trim());
+    const v = value.trim();
+    setApiKey(providerId, v);
+    setConnected(!!v);
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
   }
@@ -74,7 +80,11 @@ function ProviderKeyRow({ providerId }: { providerId: ProviderId }) {
   function clear() {
     setValue("");
     setApiKey(providerId, "");
+    setConnected(false);
+    setTesting("idle");
+    setTestMsg("");
   }
+
 
   async function test() {
     if (!value.trim()) return;
@@ -86,14 +96,24 @@ function ProviderKeyRow({ providerId }: { providerId: ProviderId }) {
       });
       if (res.ok) {
         setTesting("ok");
-        setTestMsg("Key works ✓");
+        setTestMsg("Key works ✓ — saved and ready to use");
+        setApiKey(providerId, value.trim());
+        setConnected(true);
       } else {
+        const body = await res.text().catch(() => "");
         setTesting("fail");
-        setTestMsg(`HTTP ${res.status}`);
+        setTestMsg(
+          res.status === 401 || res.status === 403
+            ? "Invalid or unauthorized key (HTTP " + res.status + ")"
+            : `HTTP ${res.status} ${body.slice(0, 140)}`,
+        );
       }
     } catch (e) {
       setTesting("fail");
-      setTestMsg(e instanceof Error ? e.message : "Network error");
+      setTestMsg(
+        (e instanceof Error ? e.message : "Network error") +
+          " — the provider may block browser requests; the key can still work at build time.",
+      );
     }
   }
 
@@ -114,12 +134,13 @@ function ProviderKeyRow({ providerId }: { providerId: ProviderId }) {
             Get an API key <ExternalLink className="w-3 h-3" />
           </a>
         </div>
-        {getApiKey(providerId) && (
+        {connected && (
           <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded bg-emerald-500/15 text-emerald-400">
             Connected
           </span>
         )}
       </div>
+
 
       <div className="mt-4 flex gap-2">
         <div className="flex-1 flex items-center rounded-lg bg-neutral-950 border border-neutral-800 focus-within:border-neutral-600">

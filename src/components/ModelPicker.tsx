@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Check, KeyRound, Cpu } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { MODELS, PROVIDERS, modelKey, type ModelInfo } from "@/lib/models";
-import { hasProviderReady } from "@/lib/settings";
+import { useProviderReadiness } from "@/lib/settings";
 
 export function ModelPicker({
   value,
@@ -14,6 +14,7 @@ export function ModelPicker({
   variant?: "light" | "dark";
 }) {
   const [open, setOpen] = useState(false);
+  const readiness = useProviderReadiness();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,7 +56,7 @@ export function ModelPicker({
           }
         >
           {grouped.map(({ provider, models }) => {
-            const ready = hasProviderReady(provider.id);
+            const ready = readiness[provider.id];
             return (
               <div key={provider.id} className="py-1">
                 <div

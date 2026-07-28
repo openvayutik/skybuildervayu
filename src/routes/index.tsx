@@ -4,7 +4,7 @@ import { Send, Settings, PanelLeft, Sparkles, Trash2, Wand2 } from "lucide-react
 import skyBg from "@/assets/sky-bg.jpg.asset.json";
 import { createProject, loadProjects, upsertProject, deleteProject, type Project } from "@/lib/projects";
 import { ModelPicker } from "@/components/ModelPicker";
-import { getDefaultModel, setDefaultModel, modelKey, type ModelInfo } from "@/lib/models";
+import { MODELS, getDefaultModel, setDefaultModel, modelKey, type ModelInfo } from "@/lib/models";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -24,7 +24,8 @@ function Home() {
   const [prompt, setPrompt] = useState("");
   const [projects, setProjects] = useState<Project[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [model, setModel] = useState<ModelInfo>(() => getDefaultModel());
+  const [model, setModel] = useState<ModelInfo>(MODELS[0]);
+  useEffect(() => setModel(getDefaultModel()), []);
 
   useEffect(() => {
     setProjects(loadProjects());
