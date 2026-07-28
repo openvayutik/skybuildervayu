@@ -142,12 +142,16 @@ export const Route = createFileRoute("/api/chat")({
 
         const system = mode === "plan" ? PLAN_PROMPT : framework === "react" ? REACT_PROMPT : STATIC_PROMPT;
 
+        const isGpt5 = provider === "lovable" && /^openai\/gpt-5/.test(model);
+
         try {
           const result = streamText({
             model: gateway(model),
             system,
             messages: await convertToModelMessages(messages),
+            ...(isGpt5 ? { providerOptions: { sky: { reasoningEffort: "none" } } } : {}),
           });
+
           return result.toUIMessageStreamResponse({
             originalMessages: messages,
             onError: (error) => {
